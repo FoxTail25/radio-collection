@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Station extends Model
 {
+    // Отключаем защиту массового заполнения для этой модели
+    protected $guarded = [];
+
     /** @use HasFactory<StationFactory> */
     use HasFactory;
 

@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Channel extends Model
 {
+    // Отключаем защиту массового заполнения для этой модели
+    protected $guarded = [];
+
     /** @use HasFactory<ChannelFactory> */
     use HasFactory;
 
