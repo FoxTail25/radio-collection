@@ -14,42 +14,42 @@ class StationSeeder extends Seeder
         $stationsData = [
             [
                 'name' => "Шоколад",
-                'img' => 'img/station_logo/shokolad.svg',
+                'img' => 'https://chocoradio.ru/local/templates/site/assets/dist/images/logo.svg?c4a599052e279cce771cdf5ccbfe673f',
                 'dots' => ["https://choco.hostingradio.ru:10010/fm", "https://choco.hostingradio.ru:10010/fm?71050d68"]
             ],
             [
                 'name' => "Relax.FM",
-                'img' => 'img/station_logo/relax_fm.svg',
+                'img' => 'https://cdnec2.relax-fm.ru/design/images/img_for_design/re_design/main_logo.svg',
                 'dots' => ["https://pub0201.101.ru:443/stream/air/aac/64/200?5660"]
             ],
             [
                 'name' => "Monte Carlo",
-                'img' => 'img/station_logo/monte_carlo.svg',
+                'img' => 'https://montecarlo.ru/b/d/XS_d975tAlcebtpOMjesWp5sKuUPWgoJaZDwNc_THtXuPg6lciF6nlNfCDQd5U1ShzdY7aLzQL7HHYqksS-CX15bDDVBjcIGFxq8=FxbNEVU59fv1-ngTFwNzPQ.webp',
                 'dots' => ["https://montecarlo.hostingradio.ru/montecarlo96.aacp?5d63", "https://radio.gubernia.com:8000/radio9"]
             ],
             [
                 'name' => "Эльдорадио",
-                'img' => 'img/station_logo/eldoradio.png',
+                'img' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSC9LaLbh3KF3E8uDaD7SyadkOvdC3dTqE8UYaJBBKFuQ&s',
                 'dots' => ["https://emgspb.hostingradio.ru/eldoradio128.mp3", "https://europaplus.hostingradio.ru:8000/eldoradio128.mp3"]
             ],
             [
                 'name' => "Авторадио",
-                'img' => 'img/station_logo/avtoradio-logo.png',
+                'img' => 'https://www.avtoradio.ru/design/images/site-design/avtoradio-logo.png',
                 'dots' => ["https://pub0201.101.ru:443/stream/air/aac/64/100?d29e93b1"]
             ],
             [
                 'name' => "DFM",
-                'img' => 'img/station_logo/dfm.jpg',
+                'img' => 'https://toplogos.ru/images/logo-dfm.png',
                 'dots' => ["https://dfm.hostingradio.ru/dfm128.mp3", "https://23.105.238.4/dfm96.aacp"]
             ],
             [
                 'name' => "LikeFM",
-                'img' => 'img/station_logo/like_fm.png',
+                'img' => 'https://upload.wikimedia.org/wikipedia/commons/7/73/LikeFM_logo.jpg?utm_source=ru.wikipedia.org&utm_campaign=index&utm_content=original',
                 'dots' => ["https://pub0101.101.ru:8000/stream/reg/mp3/128/region_like_89"]
             ],
             [
                 'name' => "Love",
-                'img' => 'img/station_logo/john-love2.png',
+                'img' => 'https://play-lh.googleusercontent.com/rLsdZbJ9lQwhxGKKu2sPCLQ-sK2SMFGiDd6B_wqVLnEv3gRm0okaVfWpGOy5K8bHLd6W4Dsg2hf5c6nHsdt44IA',
                 'dots' => ["https://centova.gr-net.gr/proxy/love/stream"]
             ],
             [
@@ -64,7 +64,7 @@ class StationSeeder extends Seeder
             ],
             [
                 'name' => "Маруся FM",
-                'img' => 'img/station_logo/marusyafm.png',
+                'img' => 'https://marus.fm/img/logo2.png',
                 'dots' => ["https://radio-holding.ru:9433/marusya_default"]
             ],
             [
