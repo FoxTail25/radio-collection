@@ -1,16 +1,20 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use App\Models\Station;
-
-// base route
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', function () {
-    // Загружаем только активные станции и сразу подтягиваем их каналы (жадная загрузка / eager loading)
+    // Получаем станции с каналами
     $stations = Station::where('is_active', true)->with('channels')->get();
 
-    return view('home', compact('stations'));
+    // Передаем данные во Vue-компонент "Welcome"
+    return Inertia::render('Welcome', [
+        'stations' => $stations,
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+    ]);
 });
+
+// Роуты авторизации от Breeze (логин, регистрация) подключаются автоматически ниже:
+require __DIR__ . '/auth.php';
