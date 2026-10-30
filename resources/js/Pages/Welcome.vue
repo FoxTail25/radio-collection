@@ -115,48 +115,59 @@ const changeVolume = (event) => {
 
           <!-- ДОБАВЛЕНО: Клик по карточке запускает основной канал. cursor-pointer делает карточку кликабельной -->
             <div
-                @click="playMainChannel(station)"
-                class="card h-100 bg-secondary text-white border-secondary shadow station-card"
-                :class="{ 'active': activeStation === station.id }"
+            @click="playMainChannel(station)"
+            class="card h-100 text-white border-secondary shadow station-card position-relative overflow-hidden"
+            :class="{ 'active': activeStation === station.id }"
             >
-                <div class="card-body p-2">
-                    <div class="d-flex flex-column align-items-center justify-content-center mb-1">
-                        <img
-                        :src="getLogoUrl(station.logo)"
-                        :alt="station.name"
+                <!-- СЛОЙ 1: Задний размытый фон (заполняет всю карточку без пустот) -->
+                <img
+                    :src="getLogoUrl(station.logo)"
+                    :alt="station.name"
+                    class="station-bg-blur"
+                >
 
-                        class="img-thumbnail bg-dark border-dark"
-                        style="width: 64px; height: 64px; object-fit: contain;"
-                        >
-                        <h5 class="card-title mb-0">{{ station.name }}</h5>
-                    </div>
-                    <p class="card-text text-light small" v-if="station.description">
-                        {{ station.description }}
-                    </p>
+                <!-- СЛОЙ 2: Четкий оригинальный логотип (помещается ЦЕЛИКОМ, не обрезается) -->
+                <div class="station-logo-container">
+                    <img
+                    :src="getLogoUrl(station.logo)"
+                    :alt="station.name"
+                    class="station-bg-main"
+                    >
                 </div>
 
-                <!-- 2) Блок каналов (отображается только если каналов > 1) -->
+                <!-- СЛОЙ 3: Затемняющая подложка для читаемости текста -->
+                <div class="station-overlay"></div>
+
+                <!-- СЛОЙ 4: Контент (текст и кнопки) -->
+                <div class="card-body p-3 station-content d-flex flex-column justify-content-between">
+                    <div class="d-flex flex-column align-items-center justify-content-center mb-1 text-center">
+                    <h5 class="card-title mb-2 fw-bold text-shadow">{{ station.name }}</h5>
+                    <p class="card-text text-light small text-shadow" v-if="station.description">
+                        {{ station.description }}
+                    </p>
+                    </div>
+                </div>
+
+                <!-- Блок каналов -->
                 <div
-                v-if="station.channels && station.channels.length > 1"
-                class="card-footer bg-transparent border-top-0 p-0"
+                    v-if="station.channels && station.channels.length > 1"
+                    class="card-footer bg-transparent border-top-0 p-3 pt-0 station-content"
                 >
-                <!-- Используем HTML5 тег <details> для чистого раскрывающегося списка без лишнего JS -->
-                <!-- @click.stop останавливает всплытие клика, чтобы при раскрытии списка не перезапускалось основное радио -->
                     <details class="channels-dropdown text-center" @click.stop>
-                        <summary class="text-uppercase tracking-wider text-warning small mb-2 cursor-pointer">
+                    <summary class="text-uppercase tracking-wider text-warning small mb-2 cursor-pointer fw-bold text-shadow">
                         каналы ({{ station.channels.length }})
-                        </summary>
-                        <div class="d-grid gap-2 mt-2">
-                            <button
-                                v-for="channel in station.channels"
-                                :key="channel.id"
-                                @click="playRadio(channel.stream_url, `${station.name} (${channel.name})`)"
-                                class="btn btn-dark btn-sm d-flex justify-content-between align-items-center text-start border-secondary"
-                            >
-                                <span>{{ channel.name }}</span>
-                                <span class="badge bg-primary text-white">▶ Поток</span>
-                            </button>
-                        </div>
+                    </summary>
+                    <div class="d-grid gap-2 mt-2">
+                        <button
+                        v-for="channel in station.channels"
+                        :key="channel.id"
+                        @click="playRadio(channel.stream_url, `${station.name} (${channel.name})`)"
+                        class="btn btn-dark btn-sm d-flex justify-content-between align-items-center text-start border-secondary opacity-90"
+                        >
+                        <span>{{ channel.name }}</span>
+                        <span class="badge bg-primary text-white">▶ Поток</span>
+                        </button>
+                    </div>
                     </details>
                 </div>
             </div>
@@ -242,5 +253,87 @@ const changeVolume = (event) => {
   content: ' ▴';
 }
 
+.station-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 200px; /* Немного увеличим высоту для лучшего баланса */
+  cursor: pointer;
+  background-color: #1a1d20; /* Темный фон на случай, если картинка долго грузится */
+}
+
+/* СЛОЙ 1: Размытый задний план */
+.station-bg-blur {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Заполняет всё пространство */
+  object-position: center;
+  filter: blur(12px) brightness(0.6); /* Размываем и слегка приглушаем яркость */
+  transform: scale(1.1); /* Слегка увеличиваем, чтобы скрыть белые края от размытия */
+  z-index: 1;
+  transition: transform 0.5s ease;
+}
+
+/* Контейнер для основного логотипа (ограничивает его размеры с отступами) */
+.station-logo-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 15px; /* Задает отступы от краев карточки, чтобы логотип не прилипал */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+/* СЛОЙ 2: Главный четкий логотип */
+.station-bg-main {
+  max-width: 90%;
+  max-height: 85%;
+  object-fit: contain; /* ВАЖНО: сохраняет пропорции и ПОМЕЩАЕТСЯ целиком, хоть квадрат, хоть прямоугольник */
+  object-position: center;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* СЛОЙ 3: Общее затемнение (градиент) поверх всего фона для текста */
+.station-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.75) 100%);
+  z-index: 3;
+}
+
+/* СЛОЙ 4: Текст и элементы поверх фонов */
+.station-content {
+  position: relative;
+  z-index: 4;
+}
+
+.text-shadow {
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+.opacity-90 {
+  background-color: rgba(33, 37, 41, 0.95) !important;
+}
+
+/* --- АНИМАЦИИ ПРИ НАВЕДЕНИИ КУРСОРА --- */
+
+/* При наведении на карточку плавно увеличиваем размытый фон */
+.station-card:hover .station-bg-blur {
+  transform: scale(1.2) rotate(1deg); /* Эффект легкого смещения фона */
+}
+
+/* И ОДНОВРЕМЕННО аккуратно увеличиваем сам центральный логотип */
+.station-card:hover .station-bg-main {
+  transform: scale(1.06);
+}
 
 </style>
