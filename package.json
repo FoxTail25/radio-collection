@@ -21,6 +21,7 @@
     },
     "dependencies": {
         "@popperjs/core": "^2.11.8",
+        "@rolldown/binding-win32-x64-msvc": "^1.2.16",
         "bootstrap": "^5.3.8"
     }
 }
