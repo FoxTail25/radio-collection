@@ -8,6 +8,8 @@
     <meta name="robots" content="index, follow">
     {{-- title --}}
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
+    <!-- фавиконка -->
+    <link rel="icon" href="./favicon.ico" sizes="any"/>
     <!-- СЕО-ОПТИМИЗАЦИЯ (SEO) -->
     <meta name="description" content="Коллекция интернет радиоканалов">
     <meta name="keywords" content="Григорий Шустиков, фронтенд разработчик, frontend developer, fullstack, верстка сайтов, веб-разработчик Москва, Laravel, React, Vue, интернет радио, коллекция радиоканалов, интернетрадио">

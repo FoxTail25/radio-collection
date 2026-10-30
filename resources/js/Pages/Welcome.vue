@@ -13,6 +13,7 @@ const isPlaying = ref(false);
 const currentTitle = ref('---');
 const playerVisible = ref(false);
 const activeStation = ref(null);
+const currentVolume = ref(0.5);
 
 const getLogoUrl = (logo) => {
   if (!logo) return '/img/default-logo.png';
@@ -36,6 +37,7 @@ const playRadio = async (url, title) => {
   if (audioPlayer.value) {
     try {
       audioPlayer.value.src = url;
+      audioPlayer.value.volume = currentVolume.value;
       await audioPlayer.value.play();
       isPlaying.value = true;
     } catch (error) {
@@ -63,19 +65,27 @@ const playMainChannel = (station) => {
 const pause = () => {
     isPlaying.value = false;
         audioPlayer.value.pause();
-    console.log('pause');
+    // console.log('pause');
 };
 const stop = () => {
     isPlaying.value = false;
         audioPlayer.value.pause();
         audioPlayer.value.currentTime = 0
-    console.log('stop');
+    // console.log('stop');
 };
 const start = () => {
     isPlaying.value = true;
         audioPlayer.value.play();
-    console.log('start');
+    // console.log('start');
 };
+const changeVolume = (event) => {
+  // event.target.value содержит текущее значение ползунка
+  const newVolume = Number(event.target.value);
+  currentVolume.value = newVolume;
+  if (audioPlayer.value) {
+    audioPlayer.value.volume = newVolume;
+  }
+}
 </script>
 
 <template>
@@ -111,10 +121,12 @@ const start = () => {
           >
             <div class="card-body p-2">
               <div class="d-flex flex-column align-items-center justify-content-center mb-1">
+                <!-- class="img-thumbnail bg-dark border-dark" -->
                 <img
                   :src="getLogoUrl(station.logo)"
                   :alt="station.name"
-                  class="img-thumbnail bg-dark border-dark"
+
+                  class="station-bg-img"
                   style="width: 64px; height: 64px; object-fit: contain;"
                 >
                 <h5 class="card-title mb-0">{{ station.name }}</h5>
@@ -163,11 +175,22 @@ const start = () => {
           <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
         </div>
         <div class="d-flex gap-2">
+                <div>
+                <label>Громкость</label>
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    :value="currentVolume"
+                    @input="changeVolume"
+                />
+                </div>
             <button @click="stop">
-                stop
+                &#9209; stop
             </button>
             <button @click="pause">
-                pause
+                &#9208; pause
             </button>
             <button @click="start">
                 ▶ play
@@ -185,24 +208,21 @@ const start = () => {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .station-card.active {
-  /* Задний фон становится чуть светлее (Bootstrap bg-secondary — это #6c757d, делаем его светлее) */
   background-color: #7b848c !important;
 
-  /* Эффект подсветки по бокам с помощью мягкой тени (box-shadow) */
-  /* Используем желтый/предупреждающий цвет Bootstrap (warning) для гармонии с логотипом, либо замени на #0d6efd для синего */
   box-shadow: 0 0 15px rgba(255, 193, 7, 0.8) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 .station-card:hover {
   transform: translateY(-3px);
-  /* Задний фон становится чуть светлее (Bootstrap bg-secondary — это #6c757d, делаем его светлее) */
+
   background-color: #7b848c !important;
 
-  /* Эффект подсветки по бокам с помощью мягкой тени (box-shadow) */
-  /* Используем желтый/предупреждающий цвет Bootstrap (warning) для гармонии с логотипом, либо замени на #0d6efd для синего */
   box-shadow: 0 0 15px rgba(255, 193, 7, 1.4) !important;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+
 .cursor-pointer {
   cursor: pointer;
 }
@@ -221,4 +241,6 @@ const start = () => {
 .channels-dropdown[open] summary::after {
   content: ' ▴';
 }
+
+
 </style>
