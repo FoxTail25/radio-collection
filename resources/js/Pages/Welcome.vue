@@ -114,52 +114,52 @@ const changeVolume = (event) => {
         <div class="col" v-for="station in stations" :key="station.id">
 
           <!-- ДОБАВЛЕНО: Клик по карточке запускает основной канал. cursor-pointer делает карточку кликабельной -->
-          <div
-            @click="playMainChannel(station)"
-            class="card h-100 bg-secondary text-white border-secondary shadow station-card"
-            :class="{ 'active': activeStation === station.id }"
-          >
-            <div class="card-body p-2">
-              <div class="d-flex flex-column align-items-center justify-content-center mb-1">
-                <!-- class="img-thumbnail bg-dark border-dark" -->
-                <img
-                  :src="getLogoUrl(station.logo)"
-                  :alt="station.name"
-
-                  class="station-bg-img"
-                  style="width: 64px; height: 64px; object-fit: contain;"
-                >
-                <h5 class="card-title mb-0">{{ station.name }}</h5>
-              </div>
-              <p class="card-text text-light small" v-if="station.description">{{ station.description }}</p>
-            </div>
-
-            <!-- 2) Блок каналов (отображается только если каналов > 1) -->
             <div
-              v-if="station.channels && station.channels.length > 1"
-              class="card-footer bg-transparent border-top-0 p-0"
+                @click="playMainChannel(station)"
+                class="card h-100 bg-secondary text-white border-secondary shadow station-card"
+                :class="{ 'active': activeStation === station.id }"
             >
-              <!-- Используем HTML5 тег <details> для чистого раскрывающегося списка без лишнего JS -->
-              <!-- @click.stop останавливает всплытие клика, чтобы при раскрытии списка не перезапускалось основное радио -->
-              <details class="channels-dropdown text-center" @click.stop>
-                <summary class="text-uppercase tracking-wider text-warning small mb-2 cursor-pointer">
-                  каналы ({{ station.channels.length }})
-                </summary>
-                <div class="d-grid gap-2 mt-2">
-                  <button
-                    v-for="channel in station.channels"
-                    :key="channel.id"
-                    @click="playRadio(channel.stream_url, `${station.name} (${channel.name})`)"
-                    class="btn btn-dark btn-sm d-flex justify-content-between align-items-center text-start border-secondary"
-                  >
-                    <span>{{ channel.name }}</span>
-                    <span class="badge bg-primary text-white">▶ Поток</span>
-                  </button>
-                </div>
-              </details>
-            </div>
+                <div class="card-body p-2">
+                    <div class="d-flex flex-column align-items-center justify-content-center mb-1">
+                        <img
+                        :src="getLogoUrl(station.logo)"
+                        :alt="station.name"
 
-          </div>
+                        class="img-thumbnail bg-dark border-dark"
+                        style="width: 64px; height: 64px; object-fit: contain;"
+                        >
+                        <h5 class="card-title mb-0">{{ station.name }}</h5>
+                    </div>
+                    <p class="card-text text-light small" v-if="station.description">
+                        {{ station.description }}
+                    </p>
+                </div>
+
+                <!-- 2) Блок каналов (отображается только если каналов > 1) -->
+                <div
+                v-if="station.channels && station.channels.length > 1"
+                class="card-footer bg-transparent border-top-0 p-0"
+                >
+                <!-- Используем HTML5 тег <details> для чистого раскрывающегося списка без лишнего JS -->
+                <!-- @click.stop останавливает всплытие клика, чтобы при раскрытии списка не перезапускалось основное радио -->
+                    <details class="channels-dropdown text-center" @click.stop>
+                        <summary class="text-uppercase tracking-wider text-warning small mb-2 cursor-pointer">
+                        каналы ({{ station.channels.length }})
+                        </summary>
+                        <div class="d-grid gap-2 mt-2">
+                            <button
+                                v-for="channel in station.channels"
+                                :key="channel.id"
+                                @click="playRadio(channel.stream_url, `${station.name} (${channel.name})`)"
+                                class="btn btn-dark btn-sm d-flex justify-content-between align-items-center text-start border-secondary"
+                            >
+                                <span>{{ channel.name }}</span>
+                                <span class="badge bg-primary text-white">▶ Поток</span>
+                            </button>
+                        </div>
+                    </details>
+                </div>
+            </div>
         </div>
       </div>
     </main>
