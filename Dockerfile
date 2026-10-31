@@ -1,6 +1,15 @@
+# --- Этап 1: Сборка фронтенда (Vue + Vite через Inertia) ---
+FROM node:24-alpine AS frontend-builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+
+# --- Этап 2: Сборка веб-сервера и PHP ---
 FROM php:8.4-fpm-alpine
 
-# Устанавливаем системные зависимости для Laravel и SQLite
+# Устанавливаем системные зависимости для Laravel, SQLite и Nginx
 RUN apk add --no-cache \
     alpine-sdk \
     build-base \
@@ -13,9 +22,10 @@ RUN apk add --no-cache \
     git \
     curl \
     sqlite-dev \
-    icu-dev
+    icu-dev \
+    nginx
 
-# Устанавливаем расширения PHP
+# Устанавливаем и настраиваем расширения PHP (включая intl для Filament и pdo_sqlite)
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo pdo_sqlite gd zip pcntl intl
 
@@ -25,13 +35,22 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Задаем рабочую директорию
 WORKDIR /var/www
 
-# Копируем файлы проекта
+# Копируем исходники проекта
 COPY . /var/www
 
-# Устанавливаем права для Laravel (папки storage и cache должны быть доступны для записи)
+# Копируем скомпилированный фронтенд (Vue) из первого этапа
+COPY --from=frontend-builder /app/public/build /var/www/public/build
+
+# Настраиваем права для Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-EXPOSE 9000
+# Копируем конфигурацию Nginx внутрь контейнера Alpine
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 
-# Изменяем финальную команду: сначала ставим зависимости, затем запускаем php-fpm
-CMD sh -c "composer install --no-dev --optimize-autoloader --no-interaction && php-fpm"
+EXPOSE 80
+
+# Финальная команда: устанавливаем зависимости Composer, создаем БД (если её нет) и запускаем Nginx + PHP-FPM
+CMD sh -c "composer install --no-dev --optimize-autoloader --no-interaction && \
+           mkdir -p database && touch database/database.sqlite && \
+           chown -R www-data:www-data database/database.sqlite database && \
+           php-fpm -D && nginx -g 'daemon off;'"

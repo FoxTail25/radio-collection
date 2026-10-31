@@ -1,26 +1,17 @@
 version: '3.8'
 
 services:
-  app:
+  web-app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: radio-app
-    restart: unless-stopped
-    volumes:
-      # МОНТИРУЕМ БАЗУ ДАННЫХ: теперь файл на сервере свяжется с файлом в контейнере и не сотрется!
-      - /var/www/radio-player-db/database.sqlite:/var/www/database/database.sqlite
-    environment:
-      - APP_ENV=production
-      - APP_DEBUG=false
-
-  web:
-    image: nginx:alpine
-    container_name: radio-web
     restart: unless-stopped
     ports:
-      - "8085:80"
+      - "8080:80" # Твой сайт будет доступен на 8080 порту VDS
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - app
+      - app_storage:/var/www/storage
+      - app_database:/var/www/database # Важно! Сохраняем базу данных SQLite при обновлениях кода
+
+volumes:
+  app_storage:
+  app_database:
