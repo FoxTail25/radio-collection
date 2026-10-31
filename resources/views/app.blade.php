@@ -5,14 +5,18 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+
     <meta name="robots" content="index, follow">
     {{-- title --}}
     <title inertia>{{ config('app.name', 'Laravel') }}</title>
     <!-- фавиконка -->
-    <link rel="icon" href="./favicon.ico" sizes="any"/>
+    <link rel="icon" href="./favicon.ico" sizes="any" />
     <!-- СЕО-ОПТИМИЗАЦИЯ (SEO) -->
     <meta name="description" content="Коллекция интернет радиоканалов">
-    <meta name="keywords" content="Григорий Шустиков, фронтенд разработчик, frontend developer, fullstack, верстка сайтов, веб-разработчик Москва, Laravel, React, Vue, интернет радио, коллекция радиоканалов, интернетрадио">
+    <meta name="keywords"
+        content="Григорий Шустиков, фронтенд разработчик, frontend developer, fullstack, верстка сайтов, веб-разработчик Москва, Laravel, React, Vue, интернет радио, коллекция радиоканалов, интернетрадио">
     <meta name="author" content="Григорий Шустиков">
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
