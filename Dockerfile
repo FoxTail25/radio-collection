@@ -1,3 +1,16 @@
+# --- Этап 1: Сборка фронтенда ---
+FROM node:24-alpine AS frontend-builder
+WORKDIR /app
+COPY package*.json ./
+
+# Добавляем инструменты сборки (необходимы для некоторых npm пакетов)
+RUN apk add --no-cache python3 make g++
+
+# Устанавливаем зависимости с флагом, который мы тестировали
+RUN npm install --legacy-peer-deps
+COPY . .
+RUN npm run build
+
 # --- Этап 2: Сборка веб-сервера и PHP ---
 FROM php:8.4-fpm-alpine
 
