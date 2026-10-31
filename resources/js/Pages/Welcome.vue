@@ -187,24 +187,24 @@ const changeVolume = (event) => {
         </div>
         <div class="d-flex gap-2">
                 <div>
-                <label>Громкость</label>
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    :value="currentVolume"
-                    @input="changeVolume"
-                />
+                    <label>Громкость</label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        :value="currentVolume"
+                        @input="changeVolume"
+                    />
                 </div>
-            <button @click="stop">
-                &#9209; stop
+            <button @click="stop" class="image-btn" aria-label="кнопка stop">
+                <img src="/img/btn_img/circle-stop-solid-full.svg" alt="изображение кнопка stop">
             </button>
-            <button @click="pause">
-                &#9208; pause
+            <button @click="pause" class="image-btn" aria-label="кнопка pause">
+                <img src="/img/btn_img/circle-pause-solid-full.svg" alt="изображение кнопка stop">
             </button>
-            <button @click="start">
-                ▶ play
+            <button @click="start" class="image-btn" aria-label="кнопка play">
+                <img src="/img/btn_img/circle-play-solid-full.svg" alt="изображение кнопка stop">
             </button>
         </div>
       </div>
@@ -233,10 +233,6 @@ const changeVolume = (event) => {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-
-.cursor-pointer {
-  cursor: pointer;
-}
 /* Стилизация раскрывающегося списка */
 .channels-dropdown summary {
   list-style: none;
@@ -335,5 +331,29 @@ const changeVolume = (event) => {
 .station-card:hover .station-bg-main {
   transform: scale(1.06);
 }
+/* стили для кнопок плеера */
+.image-btn {
+  background: none;    /* Убираем стандартный серый фон кнопки */
+  border: none;        /* Убираем рамку */
+  padding: 0;          /* Удаляем внутренние отступы */
+  cursor: pointer;     /* Меняем курсор при наведении на «палец» */
+}
+.image-btn img {
+  display: block;      /* Убираем лишние нижние отступы у картинки */
+  width: 35px;        /* Задайте нужную вам ширину */
+  height: auto;        /* Высота подстроится автоматически */
+  transition: transform 0.2s, opacity 0.2s; /* Плавный эффект для анимации */
+  border-radius: 50%;
+}
 
+/* Эффект при наведении (кнопка станет чуть прозрачнее) */
+.image-btn:hover img {
+  opacity: 0.8;
+}
+
+/* Эффект при клике (кнопка визуально уменьшится) */
+.image-btn:active img {
+  transform: scale(0.95);
+  box-shadow:  0 0 15px rgba(0, 0, 0, 0.8) !important;
+}
 </style>
