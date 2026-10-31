@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: radio-app
+    restart: unless-stopped
+    volumes:
+      # Монтируем код проекта
+      - ./:/var/www
+      # МОНТИРУЕМ БАЗУ ДАННЫХ: теперь файл на сервере свяжется с файлом в контейнере и не сотрется!
+      - /var/www/radio-player-db/database.sqlite:/var/www/database/database.sqlite
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+
+  web:
+    image: nginx:alpine
+    container_name: radio-web
+    restart: unless-stopped
+    ports:
+      - "8085:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
