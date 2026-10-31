@@ -1,8 +1,11 @@
 # --- Этап 1: Сборка фронтенда (Vue + Vite через Inertia) ---
-FROM node:24-alpine AS frontend-builder
+FROM node:24 AS frontend-builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+
+# Запускаем чистую установку
+RUN npm install
+
 COPY . .
 RUN npm run build
 
