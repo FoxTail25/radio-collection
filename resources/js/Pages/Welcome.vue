@@ -186,7 +186,7 @@ const changeVolume = (event) => {
           <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
         </div>
         <div class="d-flex gap-2">
-                <div>
+                <!-- <div>
                     <label>Громкость</label>
                     <input
                         type="range"
@@ -196,7 +196,22 @@ const changeVolume = (event) => {
                         :value="currentVolume"
                         @input="changeVolume"
                     />
-                </div>
+                </div> -->
+                  <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
+                        <!-- Иконка громкости (Bootstrap Icons для примера) -->
+                        <i class="bi bi-volume-up-fill"></i>
+                        <!-- Сам ползунок -->
+                        <input
+                        type="range"
+                        class="form-range custom-volume"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        :value.number="currentVolume"
+                        @input="changeVolume"
+                        :style="{ '--volume-progress': currentVolume * 100 + '%' }"
+                        />
+                    </div>
             <button @click="stop" class="image-btn" aria-label="кнопка stop">
                 <img src="/img/btn_img/circle-stop-solid-full.svg" alt="изображение кнопка stop">
             </button>
@@ -356,4 +371,50 @@ const changeVolume = (event) => {
   transform: scale(0.95);
   box-shadow:  0 0 15px rgba(0, 0, 0, 0.8) !important;
 }
+
+/* стили для регулеровки громкости */
+/* 1. Обновляем базовый класс ползунка */
+.custom-volume {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  cursor: pointer;
+
+  /* Убедитесь, что здесь цвет фона прозрачный, чтобы градиент был виден */
+  background: transparent;
+}
+
+/* 2. ДОБАВЛЯЕМ: Стилизация дорожки специально для Chrome, Safari и Edge */
+.custom-volume::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  /* Переносим градиент именно сюда, внутрь вебкит-трека */
+  background: linear-gradient(
+    to right,
+    var(--bs-primary) 0%,
+    var(--bs-primary) var(--volume-progress),
+    var(--bs-gray-300) var(--volume-progress),
+    var(--bs-gray-300) 100%
+  );
+  transition: background 0.1s ease;
+}
+
+/* 3. ДОБАВЛЯЕМ: Стилизация дорожки для Firefox (для полной кроссбраузерности) */
+.custom-volume::-moz-range-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    var(--bs-primary) 0%,
+    var(--bs-primary) var(--volume-progress),
+    var(--bs-gray-300) var(--volume-progress),
+    var(--bs-gray-300) 100%
+  );
+}
+
 </style>
