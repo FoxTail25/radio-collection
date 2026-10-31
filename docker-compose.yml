@@ -8,8 +8,6 @@ services:
     container_name: radio-app
     restart: unless-stopped
     volumes:
-      # Монтируем код проекта
-      - ./:/var/www
       # МОНТИРУЕМ БАЗУ ДАННЫХ: теперь файл на сервере свяжется с файлом в контейнере и не сотрется!
       - /var/www/radio-player-db/database.sqlite:/var/www/database/database.sqlite
     environment:
@@ -23,7 +21,6 @@ services:
     ports:
       - "8085:80"
     volumes:
-      - ./:/var/www
       - ./:/etc/nginx/conf.d/
     depends_on:
       - app
