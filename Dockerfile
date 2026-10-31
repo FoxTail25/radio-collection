@@ -1,17 +1,14 @@
-# --- Этап 1: Сборка фронтенда ---
-FROM node:24-alpine AS frontend-builder
+# --- Этап 1: Сборка фронтенда (Полноценный Debian, где npm не падает) ---
+FROM node:24 AS frontend-builder
 WORKDIR /app
 COPY package*.json ./
 
-# Добавляем инструменты сборки (необходимы для некоторых npm пакетов)
-RUN apk add --no-cache python3 make g++
-
-# Устанавливаем зависимости с флагом, который мы тестировали
+# Чистая установка без строгих конфликтов peer-зависимостей
 RUN npm install --legacy-peer-deps
 COPY . .
 RUN npm run build
 
-# --- Этап 2: Сборка веб-сервера и PHP ---
+# --- Этап 2: Сборка веб-сервера и PHP (Легковесный Alpine для экономии места) ---
 FROM php:8.4-fpm-alpine
 
 # Устанавливаем системные зависимости для Laravel, SQLite и Nginx
