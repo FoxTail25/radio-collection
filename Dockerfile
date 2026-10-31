@@ -12,11 +12,12 @@ RUN apk add --no-cache \
     unzip \
     git \
     curl \
-    sqlite-dev
+    sqlite-dev \
+    icu-dev
 
 # Устанавливаем расширения PHP
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo pdo_sqlite gd zip pcntl
+    && docker-php-ext-install pdo pdo_sqlite gd zip pcntl intl
 
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
