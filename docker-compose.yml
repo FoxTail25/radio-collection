@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     ports:
-      - "8080:80" # Твой сайт будет доступен на 8080 порту VDS
+      - "8081:80" # Твой сайт будет доступен на 8080 порту VDS
     volumes:
       - app_storage:/var/www/storage
       - app_database:/var/www/database # Важно! Сохраняем базу данных SQLite при обновлениях кода
