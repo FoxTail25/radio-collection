@@ -1,4 +1,4 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.4-fpm-alpine
 
 # Устанавливаем системные зависимости для Laravel и SQLite
 RUN apk add --no-cache \
@@ -31,7 +31,8 @@ COPY . /var/www
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
 # Устанавливаем зависимости PHP для продакшена
-RUN composer install --no-dev --optimize-autoloader
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-plugins --no-scripts || composer update --no-dev --optimize-autoloader --no-interaction
+
 
 EXPOSE 9000
 CMD ["php-fpm"]
