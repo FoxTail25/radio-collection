@@ -1,10 +1,14 @@
-# --- Этап 1: Сборка фронтенда (Vue + Vite через Inertia) ---
-FROM node:24 AS frontend-builder
+# --- Этап 1: Сборка фронтенда (Легковесный Alpine + инструменты сборки) ---
+FROM node:24-alpine AS frontend-builder
+
+# Добавляем инструменты, необходимые для сборки некоторых npm-пакетов
+RUN apk add --no-cache python3 make g++
+
 WORKDIR /app
 COPY package*.json ./
 
-# Запускаем чистую установку
-RUN npm install
+# Запускаем установку зависимостей
+RUN npm install --legacy-peer-deps
 
 COPY . .
 RUN npm run build
