@@ -1,7 +1,8 @@
 FROM php:8.3-fpm-alpine
 
 # Устанавливаем системные зависимости для Laravel и SQLite
-RUN alpine-sdk \
+RUN apk add --no-cache \
+    alpine-sdk \
     build-base \
     libpng-dev \
     libjpeg-turbo-dev \
