@@ -11,6 +11,7 @@ services:
     volumes:
       - app_storage:/var/www/storage
       - app_database:/var/www/database # Важно! Сохраняем базу данных SQLite при обновлениях кода
+      - /var/www/radio-config/.env:/var/www/.env # Настройки окружения хранятся на сервере.
 
 volumes:
   app_storage:
