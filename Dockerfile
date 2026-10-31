@@ -30,9 +30,7 @@ COPY . /var/www
 # Устанавливаем права для Laravel (папки storage и cache должны быть доступны для записи)
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 
-# Устанавливаем зависимости PHP для продакшена
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-plugins --no-scripts || composer update --no-dev --optimize-autoloader --no-interaction
-
-
 EXPOSE 9000
-CMD ["php-fpm"]
+
+# Изменяем финальную команду: сначала ставим зависимости, затем запускаем php-fpm
+CMD sh -c "composer install --no-dev --optimize-autoloader --no-interaction && php-fpm"
