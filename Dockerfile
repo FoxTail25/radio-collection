@@ -1,14 +1,3 @@
-# --- Этап 1: Сборка фронтенда (Полноценный Debian, где npm не падает) ---
-FROM node:24 AS frontend-builder
-WORKDIR /app
-COPY package*.json ./
-
-# Чистая установка без строгих конфликтов peer-зависимостей
-RUN npm install --legacy-peer-deps
-COPY . .
-RUN npm run build
-
-# --- Этап 2: Сборка веб-сервера и PHP (Легковесный Alpine для экономии места) ---
 FROM php:8.4-fpm-alpine
 
 # Устанавливаем системные зависимости для Laravel, SQLite и Nginx
@@ -37,11 +26,8 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Задаем рабочую директорию
 WORKDIR /var/www
 
-# Копируем исходники проекта
+# Копируем исходники проекта (вместе с уже готовой папкой public/build из Git)
 COPY . /var/www
-
-# Копируем скомпилированный фронтенд (Vue) из первого этапа
-COPY --from=frontend-builder /app/public/build /var/www/public/build
 
 # Настраиваем права для Laravel
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
