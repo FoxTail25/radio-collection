@@ -105,7 +105,7 @@ const changeVolume = (event) => {
 
   <div class="min-vh-100 bg-dark text-white d-flex flex-column justify-content-between">
     <!-- Шапка -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div class="container">
         <Link class="navbar-brand font-weight-bold text-warning" href="/">📻 Radio Collection</Link>
         <SearchFilter v-model="searchQuery"/>
@@ -189,59 +189,67 @@ const changeVolume = (event) => {
     </main>
 
     <!-- Панель плеера -->
-    <footer v-show="playerVisible" class="bg-secondary border-top border-dark p-3 sticky-bottom shadow-lg">
-      <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
-        <div class="d-flex align-items-center">
-          <div class="spinner-grow spinner-grow-sm text-success me-2" role="status" v-if="isPlaying"></div>
-          <span class="small">Сейчас играет: <strong class="text-warning">{{ currentTitle }}</strong></span>
-        </div>
+    <Transition name="fade-player">
+        <div v-show="playerVisible" class="bg-dark border-top border-secondary p-3 sticky-bottom shadow-lg">
+            <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+                <div class="d-flex align-items-center">
+                    <div class="spinner-grow spinner-grow-sm text-success me-2" role="status" v-if="isPlaying"></div>
+                    <span class="small">Сейчас играет: <strong class="text-warning">{{ currentTitle }}</strong></span>
+                </div>
 
-        <!-- Тег audio теперь полностью полагается на логику тегов из скрипта -->
-        <div style="display:none;">
-            <audio
-            ref="audioPlayer"
-            controls
-            @play="isPlaying = true"
-            @pause="isPlaying = false"
-          ></audio>
-        </div>
+                <div style="display:none;">
+                    <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
+                </div>
 
-        <div class="d-flex gap-2">
-            <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
-                <i class="bi bi-volume-up-fill"></i>
-                <input
-                type="range"
-                class="form-range custom-volume"
-                min="0"
-                max="1"
-                step="0.01"
-                v-model.number="currentVolume"
-                @input="changeVolume"
-                :style="{ '--volume-progress': currentVolume * 100 + '%' }"
-                />
+                <div class="d-flex gap-2">
+                    <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
+                        <i class="bi bi-volume-up-fill"></i>
+                        <input
+                        type="range"
+                        class="form-range custom-volume"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        v-model.number="currentVolume"
+                        @input="changeVolume"
+                        :style="{ '--volume-progress': currentVolume * 100 + '%' }"
+                        />
+                    </div>
+
+                    <button @click="stop" class="image-btn" aria-label="Остановить поток">
+                        <img src="/img/btn_img/circle-stop-solid-full.svg" alt="Стоп">
+                    </button>
+
+                    <button v-if="isPlaying" @click="pause" class="image-btn" aria-label="Поставить на паузу">
+                        <img src="/img/btn_img/circle-pause-solid-full.svg" alt="Пауза">
+                    </button>
+
+                    <button v-else @click="start" class="image-btn" aria-label="Воспроизвести">
+                        <img src="/img/btn_img/circle-play-solid-full.svg" alt="Старт">
+                    </button>
+                </div>
             </div>
-
-            <!-- Кнопка STOP -->
-            <button v-if="isPlaying" @click="stop" class="image-btn" aria-label="Остановить поток">
-                <img src="/img/btn_img/circle-stop-solid-full.svg" alt="Стоп">
-            </button>
-
-            <!-- Динамическое переключение PAUSE / PLAY -->
-            <button v-if="isPlaying" @click="pause" class="image-btn" aria-label="Поставить на паузу">
-                <img src="/img/btn_img/circle-pause-solid-full.svg" alt="Пауза">
-            </button>
-
-            <button v-else @click="start" class="image-btn" aria-label="Воспроизвести">
-                <img src="/img/btn_img/circle-play-solid-full.svg" alt="Старт">
-            </button>
         </div>
-      </div>
+    </Transition>
+    <footer class="text-center p-2 border-top border-secondary text-muted small">
+        <p class="mb-0">
+          Разработано:
+          <a href="https://foxtail25.ru" target="_blank" rel="noopener" class="text-warning text-decoration-none fw-bold hover-underline">
+            foxtail25
+          </a>
+          <span class="mx-2">|</span>
+          <a href="https://github.com/FoxTail25" target="_blank" rel="noopener" class="text-white hover-opacity ms-1" aria-label="GitHub профиль">
+            <i class="bi bi-github fs-5 align-middle"></i>
+          </a>
+        </p>
     </footer>
-
   </div>
 </template>
 
 <style scoped>
+
+
+
 /* --- КАРТОЧКА СТАНЦИИ --- */
 .station-card {
   position: relative;
@@ -393,8 +401,8 @@ const changeVolume = (event) => {
   border-radius: 3px;
   background: linear-gradient(
     to right,
-    var(--bs-primary) 0%,
-    var(--bs-primary) var(--volume-progress),
+    var(--bs-warning) 0%,
+    var(--bs-warning) var(--volume-progress),
     var(--bs-gray-300) var(--volume-progress),
     var(--bs-gray-300) 100%
   );
@@ -409,8 +417,7 @@ const changeVolume = (event) => {
   height: 14px;
   width: 14px;
   border-radius: 50%;
-  /* background: var(--bs-warning);  */
-  background: var(--bs-primary); /* цвет ползунка */
+  background: var(--bs-warning); /* цвет ползунка */
   border: none;
   transition: transform 0.1s ease;
 }
@@ -425,8 +432,8 @@ const changeVolume = (event) => {
   border-radius: 3px;
   background: linear-gradient(
     to right,
-    var(--bs-primary) 0%,
-    var(--bs-primary) var(--volume-progress),
+    var(--bs-warning) 0%,
+    var(--bs-warning) var(--volume-progress),
     var(--bs-gray-300) var(--volume-progress),
     var(--bs-gray-300) 100%
   );
@@ -437,11 +444,36 @@ const changeVolume = (event) => {
   height: 14px;
   width: 14px;
   border-radius: 50%;
-  background: var(--bs-primary); /* цвет ползунка */
+  background: var(--bs-warning); /* цвет ползунка */
   border: none;
   transition: transform 0.1s ease;
 }
 .custom-volume:active::-moz-range-thumb {
   transform: scale(1.2);
+}
+
+/* --- АНИМАЦИЯ ПЛЕЕРА --- */
+
+.fade-player-enter-active,
+.fade-player-leave-active {
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+
+/* Состояние до появления и после исчезновения */
+.fade-player-enter-from,
+.fade-player-leave-to {
+  opacity: 0;
+  transform: translateY(100%); /* Плеер плавно выезжает снизу */
+}
+/* --- СТИЛИ ДЛЯ ССЫЛОК В ПОДВАЛЕ --- */
+.hover-underline:hover {
+  text-decoration: underline !important;
+}
+
+.hover-opacity {
+  transition: opacity 0.2s ease;
+}
+.hover-opacity:hover {
+  opacity: 0.8;
 }
 </style>
