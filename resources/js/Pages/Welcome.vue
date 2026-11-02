@@ -12,15 +12,17 @@ const props = defineProps({
   canRegister: Boolean,
 });
 
-const audioPlayer = ref(null);
-const isPlaying = ref(false);
+const audioPlayer = ref(null); // тег audio
+const isPlaying = ref(false);  // проигрывание идёт?
 const currentTitle = ref('---');
 const playerVisible = ref(false);
-const activeStation = ref(null);
-const currentVolume = ref(0.5);
-const searchQuery = ref('');
+const activeStation = ref(null); // выбранная станция
+const currentVolume = ref(0.5);  // громкость.
+const searchQuery = ref('');    // текст для фильтрации станций
+const isModalOpen = ref(false); // Модальное окно открыто?
+const modalStation = ref(null); //
 
-// станции для отображения
+// Отфильтрованные станции для отображения
 const filteredStations = computed(() => {
   if (!props.stations) return [];
 
@@ -31,6 +33,17 @@ const filteredStations = computed(() => {
     station.name?.toLowerCase().includes(queryText)
   );
 });
+
+// Функция для открытия модального окна
+const openChannelsModal = (station) => {
+  modalStation.value = station;
+  isModalOpen.value = true;
+};
+// Функция для закрытия модального окна
+const closeModal = () => {
+  isModalOpen.value = false;
+  modalStation.value = null;
+};
 
 const getLogoUrl = (logo) => {
   if (!logo) return '/img/default-logo.png';
@@ -101,149 +114,171 @@ const changeVolume = (event) => {
 </script>
 
 <template>
-  <Head title="Сборник Радиостанций" />
+    <Head title="Сборник Радиостанций" />
 
-  <div class="min-vh-100 bg-dark text-white d-flex flex-column justify-content-between">
-    <!-- Шапка -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-      <div class="container">
-        <Link class="navbar-brand font-weight-bold text-warning" href="/">📻 Radio Collection</Link>
-        <SearchFilter v-model="searchQuery"/>
-        <!-- <div class="d-flex border-none">
-          <div v-if="$page.props.auth.user">
-            <Link :href="route('dashboard')" class="btn btn-outline-light btn-sm">Личный кабинет</Link>
-          </div>
-          <div v-else class="gap-2 d-flex">
-            <Link v-if="canLogin" :href="route('login')" class="btn btn-outline-light btn-sm me-2">Войти</Link>
-            <Link v-if="canRegister" :href="route('register')" class="btn btn-warning btn-sm">Регистрация</Link>
-          </div>
-        </div> -->
-      </div>
-    </nav>
+    <div class="min-vh-100 bg-dark text-white d-flex flex-column justify-content-between">
+        <!-- Шапка -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+            <div class="container">
+                <Link class="navbar-brand font-weight-bold text-warning" href="/">📻 Radio Collection</Link>
+                <SearchFilter v-model="searchQuery"/>
+                <!-- <div class="d-flex border-none">
+                <div v-if="$page.props.auth.user">
+                    <Link :href="route('dashboard')" class="btn btn-outline-light btn-sm">Личный кабинет</Link>
+                </div>
+                <div v-else class="gap-2 d-flex">
+                    <Link v-if="canLogin" :href="route('login')" class="btn btn-outline-light btn-sm me-2">Войти</Link>
+                    <Link v-if="canRegister" :href="route('register')" class="btn btn-warning btn-sm">Регистрация</Link>
+                </div>
+                </div> -->
+            </div>
+        </nav>
 
-    <!-- Основная сетка радиостанций -->
-    <main class="container my-5 flex-grow-1">
-      <div class="row row-cols-2 row-cols-sm-3  row-cols-md-4 row-cols-lg-5 row-cols-xl-5 g-1 g-md-4">
-        <div class="col" v-for="station in filteredStations" :key="station.id">
+        <!-- Основная сетка радиостанций -->
+        <main class="container my-5 flex-grow-1">
+            <div class="row row-cols-2 row-cols-sm-3  row-cols-md-4 row-cols-lg-5 row-cols-xl-5 g-1 g-md-4">
+                <div class="col" v-for="station in filteredStations" :key="station.id">
 
-          <!-- ДОБАВЛЕНО: Клик по карточке запускает основной канал. cursor-pointer делает карточку кликабельной -->
-            <div
-            @click="playMainChannel(station)"
-            class="card h-100 text-white border-secondary shadow station-card position-relative overflow-hidden"
-            :class="{ 'active': activeStation === station.id }"
-            >
-                <!-- СЛОЙ 1: Задний размытый фон (заполняет всю карточку без пустот) -->
-                <img
-                    :src="getLogoUrl(station.logo)"
-                    :alt="station.name"
-                    class="station-bg-blur"
-                >
-
-                <!-- СЛОЙ 2: Четкий оригинальный логотип (помещается ЦЕЛИКОМ, не обрезается) -->
-                <div class="station-logo-container">
-                    <img
-                    :src="getLogoUrl(station.logo)"
-                    :alt="station.name"
-                    class="station-bg-main"
+                    <!-- ДОБАВЛЕНО: Клик по карточке запускает основной канал. cursor-pointer делает карточку кликабельной -->
+                    <div
+                    @click="playMainChannel(station)"
+                    class="card h-100 text-white border-secondary shadow station-card position-relative overflow-hidden"
+                    :class="{ 'active': activeStation === station.id }"
                     >
-                </div>
-
-                <!-- СЛОЙ 3: Затемняющая подложка для читаемости текста -->
-                <div class="station-overlay"></div>
-
-                <!-- СЛОЙ 4: Контент (текст и кнопки) -->
-                <div class="card-body p-3 station-content d-flex flex-column justify-content-between">
-                    <div class="d-flex flex-column align-items-center justify-content-center mb-1 text-center">
-                    <h5 class="card-title mb-2 fw-bold text-shadow">{{ station.name }}</h5>
-                    <p class="card-text text-light small text-shadow" v-if="station.description">
-                        {{ station.description }}
-                    </p>
-                    </div>
-                </div>
-
-                <!-- Блок каналов -->
-                <div
-                    v-if="station.channels && station.channels.length > 1"
-                    class="card-footer bg-transparent border-top-0 p-3 pt-0 station-content"
-                >
-                    <details class="channels-dropdown text-center" @click.stop>
-                    <summary class="text-uppercase tracking-wider text-warning small mb-2 cursor-pointer fw-bold text-shadow">
-                        каналы ({{ station.channels.length }})
-                    </summary>
-                    <div class="d-grid gap-2 mt-2">
-                        <button
-                        v-for="channel in station.channels"
-                        :key="channel.id"
-                        @click="playRadio(channel.stream_url, `${station.name} (${channel.name})`)"
-                        class="btn btn-dark btn-sm d-flex justify-content-between align-items-center text-start border-secondary opacity-90"
+                        <!-- СЛОЙ 1: Задний размытый фон (заполняет всю карточку без пустот) -->
+                        <img
+                            :src="getLogoUrl(station.logo)"
+                            :alt="station.name"
+                            class="station-bg-blur"
                         >
-                        <span>{{ channel.name }}</span>
-                        <span class="badge bg-primary text-white">▶ Поток</span>
-                        </button>
+
+                        <!-- СЛОЙ 2: Четкий оригинальный логотип (помещается ЦЕЛИКОМ, не обрезается) -->
+                        <div class="station-logo-container">
+                            <img
+                            :src="getLogoUrl(station.logo)"
+                            :alt="station.name"
+                            class="station-bg-main"
+                            >
+                        </div>
+
+                        <!-- СЛОЙ 3: Затемняющая подложка для читаемости текста -->
+                        <div class="station-overlay"></div>
+
+                        <!-- СЛОЙ 4: Контент (текст и кнопки) -->
+                        <div class="card-body p-3 station-content d-flex flex-column justify-content-between">
+                            <div class="d-flex flex-column align-items-center justify-content-center mb-1 text-center">
+                            <h5 class="card-title mb-2 fw-bold text-shadow">{{ station.name }}</h5>
+                            <p class="card-text text-light small text-shadow" v-if="station.description">
+                                {{ station.description }}
+                            </p>
+                            </div>
+                        </div>
+
+                        <!-- Блок каналов -->
+                        <div
+                            v-if="station.channels && station.channels.length > 1"
+                            class="card-footer bg-transparent border-top-0 p-3 pt-0 station-content text-center"
+                        >
+                            <!-- @click.stop обязателен, чтобы не сработал запуск главного канала карточки -->
+                            <button
+                                @click.stop="openChannelsModal(station)"
+                                class="btn btn-link text-uppercase tracking-wider text-warning small fw-bold text-shadow p-0 text-decoration-none"
+                            >
+                                каналы ({{ station.channels.length }}) ▾
+                            </button>
+                        </div>
                     </div>
-                    </details>
                 </div>
             </div>
-        </div>
-      </div>
-    </main>
+        </main>
 
     <!-- Панель плеера -->
-    <Transition name="fade-player">
-        <div v-show="playerVisible" class="bg-dark border-top border-secondary p-3 sticky-bottom shadow-lg">
-            <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
-                <div class="d-flex align-items-center">
-                    <div class="spinner-grow spinner-grow-sm text-success me-2" role="status" v-if="isPlaying"></div>
-                    <span class="small">Сейчас играет: <strong class="text-warning">{{ currentTitle }}</strong></span>
-                </div>
-
-                <div style="display:none;">
-                    <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
-                        <i class="bi bi-volume-up-fill"></i>
-                        <input
-                        type="range"
-                        class="form-range custom-volume"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        v-model.number="currentVolume"
-                        @input="changeVolume"
-                        :style="{ '--volume-progress': currentVolume * 100 + '%' }"
-                        />
+        <Transition name="fade-player">
+            <div v-show="playerVisible" class="bg-dark border-top border-secondary p-3 sticky-bottom shadow-lg">
+                <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center">
+                        <div class="spinner-grow spinner-grow-sm text-success me-2" role="status" v-if="isPlaying"></div>
+                        <span class="small">Сейчас играет: <strong class="text-warning">{{ currentTitle }}</strong></span>
                     </div>
 
-                    <button @click="stop" class="image-btn" aria-label="Остановить поток">
-                        <img src="/img/btn_img/circle-stop-solid-full.svg" alt="Стоп">
-                    </button>
+                    <div style="display:none;">
+                        <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
+                    </div>
 
-                    <button v-if="isPlaying" @click="pause" class="image-btn" aria-label="Поставить на паузу">
-                        <img src="/img/btn_img/circle-pause-solid-full.svg" alt="Пауза">
-                    </button>
+                    <div class="d-flex gap-2">
+                        <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
+                            <i class="bi bi-volume-up-fill"></i>
+                            <input
+                            type="range"
+                            class="form-range custom-volume"
+                            min="0"
+                            max="1"
+                            step="0.01"
+                            v-model.number="currentVolume"
+                            @input="changeVolume"
+                            :style="{ '--volume-progress': currentVolume * 100 + '%' }"
+                            />
+                        </div>
 
-                    <button v-else @click="start" class="image-btn" aria-label="Воспроизвести">
-                        <img src="/img/btn_img/circle-play-solid-full.svg" alt="Старт">
-                    </button>
+                        <button @click="stop" class="image-btn" aria-label="Остановить поток">
+                            <img src="/img/btn_img/circle-stop-solid-full.svg" alt="Стоп">
+                        </button>
+
+                        <button v-if="isPlaying" @click="pause" class="image-btn" aria-label="Поставить на паузу">
+                            <img src="/img/btn_img/circle-pause-solid-full.svg" alt="Пауза">
+                        </button>
+
+                        <button v-else @click="start" class="image-btn" aria-label="Воспроизвести">
+                            <img src="/img/btn_img/circle-play-solid-full.svg" alt="Старт">
+                        </button>
+                    </div>
                 </div>
             </div>
+        </Transition>
+        <footer class="text-center p-2 border-top border-secondary text-muted small">
+            <p class="mb-0">
+            Разработано:
+            <a href="https://foxtail25.ru" target="_blank" rel="noopener" class="text-warning text-decoration-none fw-bold hover-underline">
+                foxtail25
+            </a>
+            <span class="mx-2">|</span>
+            <a href="https://github.com/FoxTail25" target="_blank" rel="noopener" class="text-white hover-opacity ms-1" aria-label="GitHub профиль">
+                <i class="bi bi-github fs-5 align-middle"></i>
+            </a>
+            </p>
+        </footer>
+        <!-- Модальное окно со списком каналов -->
+        <Transition name="fade-modal">
+        <div v-if="isModalOpen && modalStation" class="custom-modal-overlay" @click="closeModal">
+            <div class="custom-modal-content bg-dark border border-secondary shadow-lg p-4" @click.stop>
+
+            <!-- Шапка модалки -->
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
+                <h5 class="m-0 text-warning fw-bold">
+                📻 {{ modalStation.name }} — Каналы
+                </h5>
+                <button @click="closeModal" class="btn-close btn-close-white" aria-label="Закрыть"></button>
+            </div>
+
+            <!-- Список каналов с прокруткой, если их больше 6-7 -->
+            <div class="modal-channels-list pe-1" style="max-height: 350px; overflow-y: auto;">
+                <div class="d-grid gap-2">
+                <button
+                    v-for="channel in modalStation.channels"
+                    :key="channel.id"
+                    @click="playRadio(channel.stream_url, `${modalStation.name} (${channel.name})`); closeModal();"
+                    class="btn btn-secondary d-flex justify-content-between align-items-center text-start border-secondary py-2"
+                >
+                    <span class="fw-bold">{{ channel.name }}</span>
+                    <span class="badge bg-primary text-white">▶ Слушать</span>
+                </button>
+                </div>
+            </div>
+
+            </div>
         </div>
-    </Transition>
-    <footer class="text-center p-2 border-top border-secondary text-muted small">
-        <p class="mb-0">
-          Разработано:
-          <a href="https://foxtail25.ru" target="_blank" rel="noopener" class="text-warning text-decoration-none fw-bold hover-underline">
-            foxtail25
-          </a>
-          <span class="mx-2">|</span>
-          <a href="https://github.com/FoxTail25" target="_blank" rel="noopener" class="text-white hover-opacity ms-1" aria-label="GitHub профиль">
-            <i class="bi bi-github fs-5 align-middle"></i>
-          </a>
-        </p>
-    </footer>
-  </div>
+        </Transition>
+    </div>
 </template>
 
 <style scoped>
@@ -475,5 +510,60 @@ const changeVolume = (event) => {
 }
 .hover-opacity:hover {
   opacity: 0.8;
+}
+/* --- МОДАЛЬНОЕ ОКНО --- */
+.custom-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* Полупрозрачный темный фон за окном */
+  backdrop-filter: blur(4px); /* Легкое размытие заднего плана сайта */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050; /* Поверх плеера и всего остального */
+}
+
+.custom-modal-content {
+  width: 100%;
+  max-width: 450px; /* Оптимальная ширина для списка */
+  border-radius: 12px;
+  animation: modalSlideUp 0.3s ease;
+}
+
+/* Кастомный скроллбар для длинных списков каналов (10 и более) */
+.modal-channels-list::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-channels-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+.modal-channels-list::-webkit-scrollbar-thumb {
+  background: var(--bs-secondary);
+  border-radius: 3px;
+}
+
+/* --- АНИМАЦИИ МОДАЛКИ --- */
+.fade-modal-enter-active,
+.fade-modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-modal-enter-from,
+.fade-modal-leave-to {
+  opacity: 0;
+}
+
+@keyframes modalSlideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 </style>
