@@ -12,15 +12,15 @@ const props = defineProps({
   canRegister: Boolean,
 });
 
-const audioPlayer = ref(null); // тег audio
-const isPlaying = ref(false);  // проигрывание идёт?
-const currentTitle = ref('---');
-const playerVisible = ref(false);
-const activeStation = ref(null); // выбранная станция
-const currentVolume = ref(0.5);  // громкость.
-const searchQuery = ref('');    // текст для фильтрации станций
-const isModalOpen = ref(false); // Модальное окно открыто?
-const modalStation = ref(null); //
+const audioPlayer = ref(null);    // тег audio
+const isPlaying = ref(false);     // проигрывание идёт?
+const currentTitle = ref('---');  // наименование активной станции и потока
+const playerVisible = ref(false); // показывает/скрывает проигрыватель
+const activeStation = ref(null);  // выбранная станция
+const currentVolume = ref(0.5);   // громкость.
+const searchQuery = ref('');      // текст для фильтрации станций
+const isModalOpen = ref(false);   // Модальное окно открыто?
+const modalStation = ref(null);   // объект с данными станции в модальном окне
 
 // Отфильтрованные станции для отображения
 const filteredStations = computed(() => {
