@@ -148,6 +148,7 @@ const changeVolume = (event) => {
                         <!-- СЛОЙ 1: Задний размытый фон (заполняет всю карточку без пустот) -->
                         <img
                             :src="getLogoUrl(station.logo)"
+                            loading="lazy"
                             :alt="station.name"
                             class="station-bg-blur"
                         >
