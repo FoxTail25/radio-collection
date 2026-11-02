@@ -1,9 +1,13 @@
 <script setup>
-import { ref, nextTick } from 'vue';
+import { ref, nextTick, computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
+import SearchFilter from '@/Components/SearchFilter.vue';
 
-defineProps({
-  stations: Array,
+const props = defineProps({
+  stations: {
+    type: Array,
+    default: () => []
+  },
   canLogin: Boolean,
   canRegister: Boolean,
 });
@@ -14,6 +18,19 @@ const currentTitle = ref('---');
 const playerVisible = ref(false);
 const activeStation = ref(null);
 const currentVolume = ref(0.5);
+const searchQuery = ref('');
+
+// станции для отображения
+const filteredStations = computed(() => {
+  if (!props.stations) return [];
+
+  const queryText = searchQuery.value.trim().toLowerCase();
+  if (!queryText) return props.stations;
+
+  return props.stations.filter((station) =>
+    station.name?.toLowerCase().includes(queryText)
+  );
+});
 
 const getLogoUrl = (logo) => {
   if (!logo) return '/img/default-logo.png';
@@ -39,7 +56,6 @@ const playRadio = async (url, title) => {
       audioPlayer.value.src = url;
       audioPlayer.value.volume = currentVolume.value;
       await audioPlayer.value.play();
-      isPlaying.value = true;
     } catch (error) {
       console.error("Ошибка воспроизведения потока:", error);
       alert("Не удалось запустить поток. Возможно, ссылка устарела.");
@@ -63,20 +79,16 @@ const playMainChannel = (station) => {
 
 // функции для дополнительных кнопок управления плеером
 const pause = () => {
-    isPlaying.value = false;
-        audioPlayer.value.pause();
-    // console.log('pause');
+    audioPlayer.value?.pause();
 };
 const stop = () => {
-    isPlaying.value = false;
-        audioPlayer.value.pause();
-        audioPlayer.value.currentTime = 0
-    // console.log('stop');
+    if (audioPlayer.value) {
+    audioPlayer.value.pause();
+    audioPlayer.value.currentTime = 0;
+    }
 };
 const start = () => {
-    isPlaying.value = true;
-        audioPlayer.value.play();
-    // console.log('start');
+    audioPlayer.value?.play();
 };
 const changeVolume = (event) => {
   // event.target.value содержит текущее значение ползунка
@@ -96,6 +108,7 @@ const changeVolume = (event) => {
     <nav class="navbar navbar-expand-lg navbar-dark bg-secondary shadow-sm">
       <div class="container">
         <Link class="navbar-brand font-weight-bold text-warning" href="/">📻 Radio Collection</Link>
+        <SearchFilter v-model="searchQuery"/>
         <!-- <div class="d-flex border-none">
           <div v-if="$page.props.auth.user">
             <Link :href="route('dashboard')" class="btn btn-outline-light btn-sm">Личный кабинет</Link>
@@ -111,7 +124,7 @@ const changeVolume = (event) => {
     <!-- Основная сетка радиостанций -->
     <main class="container my-5 flex-grow-1">
       <div class="row row-cols-2 row-cols-sm-3  row-cols-md-4 row-cols-lg-5 row-cols-xl-5 g-1 g-md-4">
-        <div class="col" v-for="station in stations" :key="station.id">
+        <div class="col" v-for="station in filteredStations" :key="station.id">
 
           <!-- ДОБАВЛЕНО: Клик по карточке запускает основной канал. cursor-pointer делает карточку кликабельной -->
             <div
@@ -182,96 +195,75 @@ const changeVolume = (event) => {
           <div class="spinner-grow spinner-grow-sm text-success me-2" role="status" v-if="isPlaying"></div>
           <span class="small">Сейчас играет: <strong class="text-warning">{{ currentTitle }}</strong></span>
         </div>
+
+        <!-- Тег audio теперь полностью полагается на логику тегов из скрипта -->
         <div style="display:none;">
-          <audio ref="audioPlayer" controls @play="isPlaying = true" @pause="isPlaying = false"></audio>
+            <audio
+            ref="audioPlayer"
+            controls
+            @play="isPlaying = true"
+            @pause="isPlaying = false"
+          ></audio>
         </div>
+
         <div class="d-flex gap-2">
-                <!-- <div>
-                    <label>Громкость</label>
-                    <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        :value="currentVolume"
-                        @input="changeVolume"
-                    />
-                </div> -->
-                  <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
-                        <!-- Иконка громкости (Bootstrap Icons для примера) -->
-                        <i class="bi bi-volume-up-fill"></i>
-                        <!-- Сам ползунок -->
-                        <input
-                        type="range"
-                        class="form-range custom-volume"
-                        min="0"
-                        max="1"
-                        step="0.01"
-                        :value.number="currentVolume"
-                        @input="changeVolume"
-                        :style="{ '--volume-progress': currentVolume * 100 + '%' }"
-                        />
-                    </div>
-            <button @click="stop" class="image-btn" aria-label="кнопка stop">
-                <img src="/img/btn_img/circle-stop-solid-full.svg" alt="изображение кнопка stop">
+            <div class="volume-control d-flex align-items-center gap-2" style="max-width: 200px;">
+                <i class="bi bi-volume-up-fill"></i>
+                <input
+                type="range"
+                class="form-range custom-volume"
+                min="0"
+                max="1"
+                step="0.01"
+                v-model.number="currentVolume"
+                @input="changeVolume"
+                :style="{ '--volume-progress': currentVolume * 100 + '%' }"
+                />
+            </div>
+
+            <!-- Кнопка STOP -->
+            <button v-if="isPlaying" @click="stop" class="image-btn" aria-label="Остановить поток">
+                <img src="/img/btn_img/circle-stop-solid-full.svg" alt="Стоп">
             </button>
-            <button @click="pause" class="image-btn" aria-label="кнопка pause">
-                <img src="/img/btn_img/circle-pause-solid-full.svg" alt="изображение кнопка stop">
+
+            <!-- Динамическое переключение PAUSE / PLAY -->
+            <button v-if="isPlaying" @click="pause" class="image-btn" aria-label="Поставить на паузу">
+                <img src="/img/btn_img/circle-pause-solid-full.svg" alt="Пауза">
             </button>
-            <button @click="start" class="image-btn" aria-label="кнопка play">
-                <img src="/img/btn_img/circle-play-solid-full.svg" alt="изображение кнопка stop">
+
+            <button v-else @click="start" class="image-btn" aria-label="Воспроизвести">
+                <img src="/img/btn_img/circle-play-solid-full.svg" alt="Старт">
             </button>
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
 <style scoped>
-/* Добавляем стили для улучшения UI взаимодействия */
-.station-card {
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.station-card.active {
-  background-color: #7b848c !important;
-
-  box-shadow: 0 0 15px rgba(255, 193, 7, 0.8) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.station-card:hover {
-  transform: translateY(-3px);
-
-  background-color: #7b848c !important;
-
-  box-shadow: 0 0 15px rgba(255, 193, 7, 1.4) !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Стилизация раскрывающегося списка */
-.channels-dropdown summary {
-  list-style: none;
-  outline: none;
-  user-select: none;
-}
-.channels-dropdown summary::-webkit-details-marker {
-  display: none;
-}
-.channels-dropdown summary::after {
-  content: ' ▾';
-}
-.channels-dropdown[open] summary::after {
-  content: ' ▴';
-}
-
+/* --- КАРТОЧКА СТАНЦИИ --- */
 .station-card {
   position: relative;
   overflow: hidden;
-  min-height: 200px; /* Немного увеличим высоту для лучшего баланса */
+  min-height: 200px; /* Баланс высоты */
   cursor: pointer;
-  background-color: #1a1d20; /* Темный фон на случай, если картинка долго грузится */
+  background-color: #1a1d20; /* Темный фон на время загрузки картинки */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
+.station-card.active {
+  background-color: #7b848c !important;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.8) !important;
+}
+
+.station-card:hover {
+  transform: translateY(-3px);
+  background-color: #7b848c !important;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 1.4) !important;
+}
+
+/* --- СЛОИ ЛОГОТИПОВ И ФОНА --- */
 /* СЛОЙ 1: Размытый задний план */
 .station-bg-blur {
   position: absolute;
@@ -279,22 +271,22 @@ const changeVolume = (event) => {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Заполняет всё пространство */
+  object-fit: cover;
   object-position: center;
-  filter: blur(12px) brightness(0.6); /* Размываем и слегка приглушаем яркость */
-  transform: scale(1.1); /* Слегка увеличиваем, чтобы скрыть белые края от размытия */
+  filter: blur(12px) brightness(0.6);
+  transform: scale(1.1); /* Скрываем белые края размытия */
   z-index: 1;
   transition: transform 0.5s ease;
 }
 
-/* Контейнер для основного логотипа (ограничивает его размеры с отступами) */
+/* Контейнер для основного логотипа */
 .station-logo-container {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  padding: 15px; /* Задает отступы от краев карточки, чтобы логотип не прилипал */
+  padding: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,12 +297,12 @@ const changeVolume = (event) => {
 .station-bg-main {
   max-width: 90%;
   max-height: 85%;
-  object-fit: contain; /* ВАЖНО: сохраняет пропорции и ПОМЕЩАЕТСЯ целиком, хоть квадрат, хоть прямоугольник */
+  object-fit: contain;
   object-position: center;
   transition: transform 0.4s ease-in-out;
 }
 
-/* СЛОЙ 3: Общее затемнение (градиент) поверх всего фона для текста */
+/* СЛОЙ 3: Общее затемнение (градиент) */
 .station-overlay {
   position: absolute;
   top: 0;
@@ -335,45 +327,54 @@ const changeVolume = (event) => {
   background-color: rgba(33, 37, 41, 0.95) !important;
 }
 
-/* --- АНИМАЦИИ ПРИ НАВЕДЕНИИ КУРСОРА --- */
-
-/* При наведении на карточку плавно увеличиваем размытый фон */
+/* --- АНИМАЦИИ ПРИ НАВЕДЕНИИ --- */
 .station-card:hover .station-bg-blur {
-  transform: scale(1.2) rotate(1deg); /* Эффект легкого смещения фона */
+  transform: scale(1.2) rotate(1deg);
 }
 
-/* И ОДНОВРЕМЕННО аккуратно увеличиваем сам центральный логотип */
 .station-card:hover .station-bg-main {
   transform: scale(1.06);
 }
-/* стили для кнопок плеера */
-.image-btn {
-  background: none;    /* Убираем стандартный серый фон кнопки */
-  border: none;        /* Убираем рамку */
-  padding: 0;          /* Удаляем внутренние отступы */
-  cursor: pointer;     /* Меняем курсор при наведении на «палец» */
+
+/* --- РАСКРЫВАЮЩИЙСЯ СПИСОК КАНАЛОВ --- */
+.channels-dropdown summary {
+  list-style: none;
+  outline: none;
+  user-select: none;
 }
-.image-btn img {
-  display: block;      /* Убираем лишние нижние отступы у картинки */
-  width: 35px;        /* Задайте нужную вам ширину */
-  height: auto;        /* Высота подстроится автоматически */
-  transition: transform 0.2s, opacity 0.2s; /* Плавный эффект для анимации */
-  border-radius: 50%;
+.channels-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+.channels-dropdown summary::after {
+  content: ' ▾';
+}
+.channels-dropdown[open] summary::after {
+  content: ' ▴';
 }
 
-/* Эффект при наведении (кнопка станет чуть прозрачнее) */
+/* --- КНОПКИ ПЛЕЕРА --- */
+.image-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.image-btn img {
+  display: block;
+  width: 35px;
+  height: auto;
+  transition: transform 0.2s, opacity 0.2s;
+  border-radius: 50%;
+}
 .image-btn:hover img {
   opacity: 0.8;
 }
-
-/* Эффект при клике (кнопка визуально уменьшится) */
 .image-btn:active img {
   transform: scale(0.95);
-  box-shadow:  0 0 15px rgba(0, 0, 0, 0.8) !important;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6) !important;
 }
 
-/* стили для регулеровки громкости */
-/* 1. Обновляем базовый класс ползунка */
+/* --- РЕГУЛИРОВКА ГРОМКОСТИ --- */
 .custom-volume {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -382,17 +383,14 @@ const changeVolume = (event) => {
   height: 6px;
   border-radius: 3px;
   cursor: pointer;
-
-  /* Убедитесь, что здесь цвет фона прозрачный, чтобы градиент был виден */
   background: transparent;
 }
 
-/* 2. ДОБАВЛЯЕМ: Стилизация дорожки специально для Chrome, Safari и Edge */
+/* Дорожка для Chrome, Safari, Edge */
 .custom-volume::-webkit-slider-runnable-track {
   width: 100%;
   height: 6px;
   border-radius: 3px;
-  /* Переносим градиент именно сюда, внутрь вебкит-трека */
   background: linear-gradient(
     to right,
     var(--bs-primary) 0%,
@@ -403,7 +401,24 @@ const changeVolume = (event) => {
   transition: background 0.1s ease;
 }
 
-/* 3. ДОБАВЛЯЕМ: Стилизация дорожки для Firefox (для полной кроссбраузерности) */
+/* ИСПРАВЛЕНО: Бегунок (круг) для Chrome, Safari, Edge — теперь он не исчезнет */
+.custom-volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -4px; /* Центрируем круг относительно дорожки ( (6px - 14px) / 2 ) */
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  /* background: var(--bs-warning);  */
+  background: var(--bs-primary); /* цвет ползунка */
+  border: none;
+  transition: transform 0.1s ease;
+}
+.custom-volume:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+/* Дорожка для Firefox */
 .custom-volume::-moz-range-track {
   width: 100%;
   height: 6px;
@@ -417,4 +432,16 @@ const changeVolume = (event) => {
   );
 }
 
+/* Бегунок для Firefox */
+.custom-volume::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: var(--bs-primary); /* цвет ползунка */
+  border: none;
+  transition: transform 0.1s ease;
+}
+.custom-volume:active::-moz-range-thumb {
+  transform: scale(1.2);
+}
 </style>

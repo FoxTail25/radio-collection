@@ -1,20 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
-
-// Принимаем начальное значение (опционально)
-const props = defineProps({
-  modelValue: String
-})
-
-// Объявляем событие обновления значения для v-model
-const emit = defineEmits(['update:modelValue'])
-
-const searchQuery = ref(props.modelValue || '')
-
-// Следим за вводом и сразу отправляем данные родителю
-watch(searchQuery, (newValue) => {
-  emit('update:modelValue', newValue)
-})
+// defineModel автоматически создает реактивную связь с v-model родителя.
+// Больше не нужны props, emits, локальный ref и watch!
+const searchQuery = defineModel({ type: String, default: '' })
 </script>
 
 <template>
