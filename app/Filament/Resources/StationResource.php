@@ -28,37 +28,6 @@ class StationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-//    public static function form(Form $form): Form
-// {
-//     return $form
-//         ->schema([
-//             TextInput::make('name')
-//                 ->required()
-//                 ->maxLength(255)
-//                 ->live(onBlur: true) // Отслеживаем изменения, когда пользователь уводит фокус с поля
-//                 ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))), // Автоматически генерируем URL-slug на лету
-
-//             TextInput::make('slug')
-//                 ->required()
-//                 ->maxLength(255)
-//                 ->unique(ignoreRecord: true), // Проверяем уникальность, игнорируя текущую запись при редактировании
-
-//             // Меняем обычное текстовое поле на компонент загрузки файлов
-//             FileUpload::make('logo')
-//                 ->image() // Разрешаем только картинки
-//                 ->directory('station-logos') // Папка внутри storage/app/public
-//                 ->disk('public') // Явно указываем публичный диск
-//                 ->nullable(),
-
-//             Toggle::make('is_active')
-//                 ->required()
-//                 ->default(true),
-
-//             Textarea::make('description')
-//                 ->maxLength(65535)
-//                 ->columnSpanFull(),
-//         ]);
-// }
 
 public static function form(Form $form): Form
 {
