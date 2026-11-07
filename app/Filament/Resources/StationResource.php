@@ -20,43 +20,103 @@ use Filament\Forms\Components\Textarea;
 use Illuminate\Support\Str;
 use Filament\Forms\Set;
 
+use Filament\Forms\Get; // Важно для отслеживания состояния полей
+
 class StationResource extends Resource
 {
     protected static ?string $model = Station::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
-   public static function form(Form $form): Form
+//    public static function form(Form $form): Form
+// {
+//     return $form
+//         ->schema([
+//             TextInput::make('name')
+//                 ->required()
+//                 ->maxLength(255)
+//                 ->live(onBlur: true) // Отслеживаем изменения, когда пользователь уводит фокус с поля
+//                 ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))), // Автоматически генерируем URL-slug на лету
+
+//             TextInput::make('slug')
+//                 ->required()
+//                 ->maxLength(255)
+//                 ->unique(ignoreRecord: true), // Проверяем уникальность, игнорируя текущую запись при редактировании
+
+//             // Меняем обычное текстовое поле на компонент загрузки файлов
+//             FileUpload::make('logo')
+//                 ->image() // Разрешаем только картинки
+//                 ->directory('station-logos') // Папка внутри storage/app/public
+//                 ->disk('public') // Явно указываем публичный диск
+//                 ->nullable(),
+
+//             Toggle::make('is_active')
+//                 ->required()
+//                 ->default(true),
+
+//             Textarea::make('description')
+//                 ->maxLength(65535)
+//                 ->columnSpanFull(),
+//         ]);
+// }
+
+public static function form(Form $form): Form
 {
     return $form
         ->schema([
-            TextInput::make('name')
+            Forms\Components\TextInput::make('name')
                 ->required()
                 ->maxLength(255)
-                ->live(onBlur: true) // Отслеживаем изменения, когда пользователь уводит фокус с поля
-                ->afterStateUpdated(fn (Set $set, ?string $state) => $set('slug', Str::slug($state))), // Автоматически генерируем URL-slug на лету
+                ->live(onBlur: true)
+                ->afterStateUpdated(fn (\Filament\Forms\Set $set, ?string $state) => $set('slug', \Illuminate\Support\Str::slug($state))),
 
-            TextInput::make('slug')
+            Forms\Components\TextInput::make('slug')
                 ->required()
                 ->maxLength(255)
-                ->unique(ignoreRecord: true), // Проверяем уникальность, игнорируя текущую запись при редактировании
+                ->unique(ignoreRecord: true),
 
-            // Меняем обычное текстовое поле на компонент загрузки файлов
-            FileUpload::make('logo')
-                ->image() // Разрешаем только картинки
-                ->directory('station-logos') // Папка внутри storage/app/public
-                ->disk('public') // Явно указываем публичный диск
-                ->nullable(),
+            // 1. ТУМБЛЕР: Выбор режима (Ссылка или Файл)
+            Forms\Components\Toggle::make('is_external_logo')
+                ->label('Использовать внешнюю ссылку для логотипа')
+                ->live()
+                ->afterStateHydrated(function (Forms\Components\Toggle $component, $state, $record) {
+                    if ($record && str_starts_with($record->logo ?? '', 'http')) {
+                        $component->state(true);
+                    } else {
+                        $component->state(false);
+                    }
+                })
+                ->dehydrated(false),
 
-            Toggle::make('is_active')
+            // 2. ССЫЛКА: Показывается, если тумблер ВКЛЮЧЕН
+            Forms\Components\TextInput::make('logo_url')
+                ->label('Ссылка на логотип')
+                ->url()
+                ->maxLength(255)
+                ->visible(fn (Forms\Get $get) => $get('is_external_logo') === true)
+                ->statePath('logo') // Пишем напрямую в колонку logo
+                ->required(fn (Forms\Get $get) => $get('is_external_logo') === true),
+
+            // 3. ФАЙЛ: Показывается, если тумблер ВЫКЛЮЧЕН
+            Forms\Components\FileUpload::make('logo_file')
+                ->label('Загрузить файл логотипа')
+                ->image()
+                ->directory('station-logos')
+                ->disk('public')
+                ->visible(fn (Forms\Get $get) => $get('is_external_logo') === false)
+                ->statePath('logo') // Пишем напрямую в колонку logo
+                ->required(fn (Forms\Get $get) => $get('is_external_logo') === false),
+
+            Forms\Components\Toggle::make('is_active')
                 ->required()
                 ->default(true),
 
-            Textarea::make('description')
+            Forms\Components\Textarea::make('description')
                 ->maxLength(65535)
                 ->columnSpanFull(),
         ]);
 }
+
 
     public static function table(Table $table): Table
     {
