@@ -29,6 +29,7 @@ COPY composer.json composer.lock ./
 
 # Устанавливаем продакшн-зависимости прямо на этапе сборки образа!
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+# RUN composer install --optimize-autoloader --no-interaction --no-scripts
 
 # ==============================================================================
 # ЭТАП 2: Чистый Продакшн (Lightweight Production)
@@ -45,26 +46,26 @@ RUN apk add --no-cache \
     icu-libs \
     nginx
 
-# Магия: копируем УЖЕ СКОМПИЛИРОВАННЫЕ расширения из первого этапа (builder)
+# ИСПРАВЛЕНИЕ 1: Правильный перенос скомпилированных расширений PHP
+# Вместо копирования папки conf.d, мы копируем саму директорию расширений PHP
 COPY --from=builder /usr/local/lib/php/extensions /usr/local/lib/php/extensions
-COPY --from=builder /usr/local/etc/php/conf.d /usr/local/etc/php/conf.d
+# И активируем их стандартным для Docker образом
+RUN docker-php-ext-enable pdo pdo_sqlite gd zip pcntl intl
 
 WORKDIR /var/www
 
-# Копируем исходный код проекта
-COPY . /var/www
+# ИСПРАВЛЕНИЕ 2: Копируем исходный код сразу с правильными правами владельца www-data
+COPY --chown=www-data:www-data . /var/www
 
-# Магия 2: копируем УЖЕ СКАЧАННУЮ папку vendor из первого этапа
-COPY --from=builder /var/www/vendor /var/www/vendor
+# Магия 2: копируем УЖЕ СКАЧАННУЮ папку vendor из первого этапа (тоже с правами www-data)
+COPY --from=builder --chown=www-data:www-data /var/www/vendor /var/www/vendor
 
-# Настраиваем права и конфиг Nginx
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+# Настраиваем конфиг Nginx
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 
 EXPOSE 80
 
 # Финальная команда стала чище и быстрее: никаких composer install!
-# Контейнер запускается мгновенно, за доли секунды.
 CMD sh -c "mkdir -p database && touch database/database.sqlite && \
            chown -R www-data:www-data database/database.sqlite database && \
            php-fpm -D && nginx -g 'daemon off;'"
