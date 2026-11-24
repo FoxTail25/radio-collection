@@ -5,21 +5,26 @@ namespace App\Models;
 use Database\Factories\StationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\EloquentSortable\Sortable;
+use Spatie\EloquentSortable\SortableTrait;
 
-class Station extends Model
+class Station extends Model implements Sortable
 {
-    // Отключаем защиту массового заполнения для этой модели
+    use HasFactory;
+    use SortableTrait;
+
     protected $guarded = [];
 
-    /** @use HasFactory<StationFactory> */
-    use HasFactory;
+    public $sortable = [
+        'order_column_name' => 'pp',
+        'sort_when_creating' => true,
+    ];
 
     public function channels()
     {
         return $this->hasMany(Channel::class);
     }
 
-    // Вспомогательный метод для быстрого получения главного канала
     public function mainChannel()
     {
         return $this->hasOne(Channel::class)->where('is_main', true);

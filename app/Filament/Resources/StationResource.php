@@ -118,7 +118,12 @@ public static function form(Form $form): Form
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            // --- НАЧАЛО НАСТРОЙКИ DRAG & DROP ---
+            ->defaultSort('pp')       // Сортировка по умолчанию
+            ->reorderable('pp')       // Включает перетаскивание
+            ->paginated(false);       // Отключает пагинацию (чтобы таскать по всему списку)
+            // --- КОНЕЦ НАСТРОЙКИ DRAG & DROP ---
     }
 
     public static function getRelations(): array

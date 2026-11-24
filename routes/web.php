@@ -6,7 +6,7 @@ use Inertia\Inertia;
 
 Route::get('/', function () {
     // Получаем станции с каналами
-    $stations = Station::where('is_active', true)->with('channels')->get();
+    $stations = Station::where('is_active', true)->with('channels')->orderBy('pp')->get();
 
     // Передаем данные во Vue-компонент "Welcome"
     return Inertia::render('Welcome', [
